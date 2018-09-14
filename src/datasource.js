@@ -9,10 +9,27 @@ export class GenericDatasource {
     this.q = $q;
     this.backendSrv = backendSrv;
     this.templateSrv = templateSrv;
-    this.withCredentials = instanceSettings.withCredentials;
-    this.headers = {'Content-Type': 'application/json'};
-    if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
-      this.headers['Authorization'] = instanceSettings.basicAuth;
+
+    if (typeof window !== 'undefined') {
+      var cors_api_host = 'cors-anywhere.herokuapp.com';
+      var cors_api_url = 'https://' + cors_api_host + '/';
+      var slice = [].slice;
+      var origin = window.location.protocol + '//' + window.location.host;
+      var open = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function() {
+        var args = slice.call(arguments);
+        var targetOrigin = /^https?:\/\/([^\/]+)/i.exec(args[1]);
+        if (targetOrigin && targetOrigin[0].toLowerCase() !== origin &&
+          targetOrigin[1] !== cors_api_host) {
+          args[1] = cors_api_url + args[1];
+        }
+        return open.apply(this, args);
+      };
+
+      this.headers = {
+        'Authorization': "Basic " + btoa(instanceSettings.jsonData.username + ":" + instanceSettings.jsonData.password),
+        'App-Key': instanceSettings.jsonData.appKey,
+      };
     }
   }
 
@@ -39,13 +56,24 @@ export class GenericDatasource {
 
   testDatasource() {
     return this.doRequest({
-      url: this.url + '/',
-      method: 'GET',
-    }).then(response => {
-      if (response.status === 200) {
-        return { status: "success", message: "Data source is working", title: "Success" };
-      }
-    });
+        url: 'https://api.pingdom.com/api/2.0/checks',
+        method: 'GET',
+      }).then(response => {
+        if (response.status === 200) {
+          return {
+            status: "success",
+            title: "Success",
+            message: "Data source is working"
+          }
+
+        } else {
+          return {
+            status: "error",
+            title: "Error",
+            message: response.data.error.errormessage,
+          }
+        }
+      });
   }
 
   annotationQuery(options) {
@@ -95,7 +123,6 @@ export class GenericDatasource {
   }
 
   doRequest(options) {
-    options.withCredentials = this.withCredentials;
     options.headers = this.headers;
 
     return this.backendSrv.datasourceRequest(options);
