@@ -1,6 +1,6 @@
 {
-  "name": "SimpleJson",
-  "id": "grafana-simple-json-datasource",
+  "name": "Pingdom",
+  "id": "pingdom-datasource",
   "type": "datasource",
 
   "partials": {
@@ -8,13 +8,13 @@
   },
 
   "metrics": true,
-  "annotations": true,
+  "annotations": false,
 
   "info": {
-    "description": "simple json datasource",
+    "description": "simple pingdom datasource",
     "author": {
-      "name": "Grafana Labs",
-      "url": "https://grafana.com"
+      "name": "Simon Johansson",
+      "url": "https://github.com/simonjohansson"
     },
     "logos": {
       "small": "img/simpleJson_logo.svg",
